@@ -7,6 +7,10 @@ export default async function handler(req, res) {
     console.error("❌ Missing API keys");
     return res.status(500).json({ message: "Missing API keys" });
   }
+  
+  const data = await youtubeRes.json();
+console.log("🔍 YouTube API response:", JSON.stringify(data, null, 2));
+
 
   try {
     // 1. Fetch videos from YouTube API
