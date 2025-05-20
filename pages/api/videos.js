@@ -16,6 +16,7 @@ export default async function handler(req, res) {
     const data = await youtubeRes.json();
 
     if (!data.items) {
+      console.error("YouTube API returned no items:", data);
       return res.status(500).json({ message: "YouTube API returned no results" });
     }
 
@@ -23,33 +24,54 @@ export default async function handler(req, res) {
       data.items
         .filter((item) => item.id.videoId)
         .map(async (item) => {
-          const summaryRes = await fetch("https://api.openai.com/v1/chat/completions", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
-            },
-            body: JSON.stringify({
-              model: "gpt-4o-mini",
-              messages: [
-                {
-                  role: "user",
-                  content: `Summarize this video description in 2 sentences:\n${item.snippet.description}`
-                }
-              ]
-            })
-          });
+          try {
+            const summaryRes = await fetch("https://api.openai.com/v1/chat/completions", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+              },
+              body: JSON.stringify({
+                model: "gpt-4o-mini",
+                messages: [
+                  {
+                    role: "user",
+                    content: `Summarize this video description in 2 sentences:\n${item.snippet.description}`
+                  }
+                ]
+              })
+            });
 
-          const summaryJson = await summaryRes.json();
-          const summary = summaryJson.choices?.[0]?.message?.content || "No summary available.";
+            const summaryJson = await summaryRes.json();
 
-          return {
-            id: item.id.videoId,
-            title: item.snippet.title,
-            description: item.snippet.description,
-            url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
-            summary
-          };
+            if (!summaryJson.choices) {
+              console.error("OpenAI Error Response:", summaryJson);
+              return {
+                id: item.id.videoId,
+                title: item.snippet.title,
+                description: item.snippet.description,
+                url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+                summary: "OpenAI error: No summary generated"
+              };
+            }
+
+            return {
+              id: item.id.videoId,
+              title: item.snippet.title,
+              description: item.snippet.description,
+              url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+              summary: summaryJson.choices[0].message.content || "No summary available"
+            };
+          } catch (err) {
+            console.error("OpenAI Fetch Failed:", err);
+            return {
+              id: item.id.videoId,
+              title: item.snippet.title,
+              description: item.snippet.description,
+              url: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+              summary: "Error fetching summary"
+            };
+          }
         })
     );
 
