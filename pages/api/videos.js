@@ -7,5 +7,6 @@ export default async function handler(req, res) {
     message: "Serverless API is working",
     youtubeKeyPresent: !!process.env.YOUTUBE_API_KEY,
     openaiKeyPresent: !!process.env.OPENAI_API_KEY
+    
   });
 }
