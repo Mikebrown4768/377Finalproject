@@ -11,7 +11,8 @@ const HomePage = () => {
     setLoading(true);
     setError(null);  // Reset error state before making a new request
     try {
-      const response = await axios.get(`http://localhost:5000/api/videos?query=${query}`);
+      const response = await axios.get(`/api/videos?query=${query}`);
+
       setVideos(response.data);
     } catch (error) {
       console.error('Error fetching videos:', error);
