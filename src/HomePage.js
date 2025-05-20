@@ -8,22 +8,28 @@ const HomePage = () => {
   const [error, setError] = useState(null);
   const [hasSearched, setHasSearched] = useState(false); // <-- NEW state
 
-  const fetchVideos = async () => {
-    setLoading(true);
-    setError(null);
-    setHasSearched(true); // <-- mark that user has triggered a search
+const fetchVideos = async () => {
+  setLoading(true);
+  setError(null);
+  setHasSearched(true);
 
-    try {
-      const response = await axios.get(`/api/videos?query=${query}`);
+  try {
+    const response = await axios.get(`/api/videos?query=${query}`);
+    if (Array.isArray(response.data)) {
       setVideos(response.data);
-    }catch (error) {
-  console.error('Error fetching videos:', error.response?.data || error.message);
-  const message = error.response?.data?.message || 'An error occurred while fetching videos.';
-  setError(message);
-}
+    } else {
+      console.error("Expected array, got:", response.data);
+      setVideos([]); // avoid breaking the .map
+      setError(response.data.message || 'Unexpected response format.');
+    }
+  } catch (error) {
+    console.error('Error fetching videos:', error.response?.data || error.message);
+    setError(error.response?.data?.message || 'An unknown error occurred.');
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
+
 
   return (
     <div className="container mx-auto p-4">
