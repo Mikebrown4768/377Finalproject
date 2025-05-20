@@ -6,30 +6,31 @@ const HomePage = () => {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [hasSearched, setHasSearched] = useState(false); // <-- NEW state
+  const [hasSearched, setHasSearched] = useState(false);
 
-const fetchVideos = async () => {
-  setLoading(true);
-  setError(null);
-  setHasSearched(true);
+  const fetchVideos = async () => {
+    setLoading(true);
+    setError(null);
+    setHasSearched(true);
 
-  try {
-    const response = await axios.get(`/api/videos?query=${query}`);
-    if (Array.isArray(response.data)) {
-      setVideos(response.data);
-    } else {
-      console.error("Expected array, got:", response.data);
-      setVideos([]); // avoid breaking the .map
-      setError(response.data.message || 'Unexpected response format.');
+    try {
+      const response = await axios.get(`/api/videos?query=${query}`);
+
+      if (Array.isArray(response.data)) {
+        setVideos(response.data);
+      } else {
+        console.error("Expected an array but got:", response.data);
+        setVideos([]);
+        setError(response.data.message || 'Unexpected response from server.');
+      }
+    } catch (error) {
+      console.error('Error fetching videos:', error.response?.data || error.message);
+      setError(error.response?.data?.message || 'An error occurred while fetching videos.');
+      setVideos([]);
     }
-  } catch (error) {
-    console.error('Error fetching videos:', error.response?.data || error.message);
-    setError(error.response?.data?.message || 'An unknown error occurred.');
-  }
 
-  setLoading(false);
-};
-
+    setLoading(false);
+  };
 
   return (
     <div className="container mx-auto p-4">
@@ -37,7 +38,7 @@ const fetchVideos = async () => {
 
       <form
         onSubmit={(e) => {
-          e.preventDefault(); // prevent form reload
+          e.preventDefault();
           fetchVideos();
         }}
         className="flex justify-center mt-4"
@@ -74,7 +75,6 @@ const fetchVideos = async () => {
             </div>
           ))}
 
-        {/* Show this only if the user searched and no results came back */}
         {hasSearched && videos.length === 0 && !loading && !error && (
           <p className="text-center mt-4">No videos found. Try a different search.</p>
         )}

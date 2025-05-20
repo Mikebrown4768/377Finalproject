@@ -12,8 +12,8 @@ export default async function handler(req, res) {
     const data = await youtubeRes.json();
 
     if (!Array.isArray(data.items)) {
-      console.warn("YouTube returned unexpected format:", data);
-      return res.status(200).json({ message: "YouTube API error or no items." });
+      console.warn("⚠️ YouTube returned unexpected format:", data);
+      return res.status(200).json([]);
     }
 
     const results = await Promise.all(data.items.map(async (item) => {
@@ -30,14 +30,14 @@ export default async function handler(req, res) {
           },
           body: JSON.stringify({
             model: "gpt-4o-mini",
-            messages: [{ role: "user", content: `Summarize this video description:
-${description}` }]
+            messages: [{ role: "user", content: `Summarize this video description:\n${description}` }]
           })
         });
+
         const summaryData = await openaiRes.json();
         summary = summaryData?.choices?.[0]?.message?.content || summary;
-      } catch (e) {
-        console.error("OpenAI error:", e);
+      } catch (err) {
+        console.error("OpenAI API error:", err);
       }
 
       return {
