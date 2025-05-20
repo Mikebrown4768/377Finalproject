@@ -4,7 +4,7 @@ export default async function handler(req, res) {
   if (!process.env.YOUTUBE_API_KEY || !process.env.OPENAI_API_KEY) {
     return res.status(500).json({ message: "Missing API keys" });
   }
-
+//This should work
   try {
     const youtubeRes = await fetch(
       `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=5&q=${encodeURIComponent(query)}&key=${process.env.YOUTUBE_API_KEY}`
