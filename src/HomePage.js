@@ -10,13 +10,16 @@ const HomePage = () => {
   const fetchVideos = async () => {
     setLoading(true);
     setError(null);  // Reset error state before making a new request
-    try {
-      const response = await axios.get(`http://localhost:5000/api/videos?query=${query}`);
-      setVideos(response.data);
-    } catch (error) {
-      console.error('Error fetching videos:', error);
-      setError('An error occurred while fetching videos. Please try again later.');
-    }
+  try {
+  const response = await axios.get(`/api/videos?query=${query}`); // Updated to relative path for Vercel
+  setVideos(response.data);
+  setError(null); // Clear any previous error
+} catch (error) {
+  console.error('Error fetching videos:', error.response?.data || error.message);
+  const message = error.response?.data?.message || 'An unknown error occurred while fetching videos.';
+  setError(message); // Show backend error if provided
+}
+
     setLoading(false);
   };
 
